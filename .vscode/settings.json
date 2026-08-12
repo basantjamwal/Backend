@@ -1,0 +1,8 @@
+{
+    "mdb.presetConnections": [
+        {
+            "name": "Preset Connection",
+            "connectionString": "mongodb+srv://basant:basant123@cluster0.rr3zlbz.mongodb.net/"
+        }
+    ]
+}
