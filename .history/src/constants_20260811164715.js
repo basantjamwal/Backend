@@ -1,1 +1,0 @@
-DB_NAME = "04_project"
