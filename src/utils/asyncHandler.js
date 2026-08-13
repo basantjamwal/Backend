@@ -1,12 +1,12 @@
 const asyncHandler = (reqHandler) => {
-    (req, res, next) => {
+    return (req, res, next) => {
         Promise
-        .resolve(reqHandler(req, res, next))
-        .catch((error) => next(error))
+            .resolve(reqHandler(req, res, next))
+            .catch((error) => next(error))
     }
 }
 
-export { asyncHandler };
+export default asyncHandler;
 
 // This is another way of doing the above and uses higher order function
 
