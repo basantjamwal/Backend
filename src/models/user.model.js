@@ -28,8 +28,8 @@ const userSchema = new Schema({
         type: String, //cloudinary url
         required: true
     },
-    coverimage: {
-        type: String //cloudinary url
+    coverImage: {
+        type: String  //cloudinary url
     },
     password: {
         type: String,
@@ -42,25 +42,24 @@ const userSchema = new Schema({
             ref: "Video"
         }
     ],
-    refershToken: {
+    refreshToken: {
         type: String
     }
 }, {
     timestamps: true
 })
 
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next();
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
+    this.password = await bcrypt.hash(this.password, 10);
+});
 
-    this.password = bcrypt.hash(this.password, 10)
-    next()
-})
 
 userSchema.methods.isPasswordCorrect = async function (password) {
     return await bcrypt.compare(password, this.password)
 }
 
-userSchema.method.getAccessToken = function () {
+userSchema.methods.getAccessToken = function () {
     return jwt.sign({
         _id: this._id,
         email: this.email,
@@ -74,7 +73,7 @@ userSchema.method.getAccessToken = function () {
     )
 }
 
-userSchema.method.getRefreshToken = function () {
+userSchema.methods.getRefreshToken = function () {
     return jwt.sign({
         _id: this._id
     },

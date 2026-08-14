@@ -4,7 +4,6 @@ import { User } from "../models/user.model.js"
 import multer from "multer"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponce } from "../utils/ApiResponce.js"
-import { use } from "react"
 
 const registerUser = asyncHandler(async (req, res) => {
 
@@ -16,7 +15,7 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiErrors(400, "ALL FIELDS ARE REQUIRED!!")
     }
 
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{ username }, { email }]
     })
 
@@ -25,20 +24,26 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length() > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
 
     if (!avatarLocalPath) {
         throw new ApiErrors(400, "AVATAR FILE IS REQUIRED")
     }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath);
-    const coverImage = coverImageLocalPath ? await uploadOnCloudinary(coverImageLocalPath) : false;
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
-    if (avatar) {
+
+    if (!avatar) {
         throw new ApiErrors(400, "AVATAR FILE IS REQUIRED")
     }
 
-    const user = User.create({
+    const user = await User.create({
         fullname,
         email,
         password,
@@ -51,14 +56,16 @@ const registerUser = asyncHandler(async (req, res) => {
         "-password -refreshToken"
     )
 
-    if(!userCreated){
+    if (!userCreated) {
         throw new ApiErrors(500, "SOMETHING WENT WRONG WHILE REGISTERING THE USER")
+    } else {
+        console.log("USER REGISTERED SUCCESSFULLY")
     }
 
     return res.status(201).json(
-        new ApiResponce(200,userCreated , "USER REGISTERED SUCCESSFULLY")
+        new ApiResponce(200, userCreated, "USER REGISTERED SUCCESSFULLY")
     )
-    
+
 })
 
 export { registerUser }
