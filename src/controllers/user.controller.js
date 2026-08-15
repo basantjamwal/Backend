@@ -2,7 +2,7 @@ import asyncHandler from "../utils/asyncHandler.js"
 import { ApiErrors } from "../utils/ApiErrors.js"
 import { User } from "../models/user.model.js"
 import multer from "multer"
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
 import jwt from "jsonwebtoken"
 import { ApiResponce } from "../utils/ApiResponce.js"
 
@@ -318,15 +318,14 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         throw new ApiErrors(400, "ERROR WHILE UPLOADING AVATAR")
     }
 
-    const user = await User.findByIdAndUpdate(
-        req.user?._id,
-        {
-            $set: {
-                avatar: avatar.url
-            }
-        },
-        { new: true }
-    ).select("-password")
+    const user = await User.findById(req.user?._id).select("avatar")
+
+    if (user?.avatar) {
+        await deleteFromCloudinary(user.avatar)
+    }
+
+    user.avatar = avatar.url
+    await user.save({ validateBeforeSave: false })
 
     return res
         .status(200)
@@ -351,15 +350,14 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         throw new ApiErrors(400, "ERROR WHILE UPLOADING COVER IMAGE")
     }
 
-    const user = await User.findByIdAndUpdate(
-        req.user?._id,
-        {
-            $set: {
-                coverImage: coverImage.url
-            }
-        },
-        { new: true }
-    ).select("-password")
+    const user = await User.findById(req.user?._id).select("coverImage")
+
+    if (user?.coverImage) {
+        await deleteFromCloudinary(user.coverImage)
+    }
+
+    user.coverImage = coverImage.url
+    await user.save({ validateBeforeSave: false })
 
     return res
         .status(200)
