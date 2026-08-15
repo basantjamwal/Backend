@@ -10,7 +10,10 @@ import {
     updateUserDetails,
     getCurrentUser,
     updateUserAvatar,
-    updateUserCoverImage
+    updateUserCoverImage,
+    getUserChannelProfile,
+    getWatchHistory
+
 } from "../controllers/user.controller.js"
 
 const router = Router();
@@ -33,10 +36,14 @@ router.route("/login").post(loginUser)
 
 router.route("/logout").post(verifyJWT, loggedOut)
 router.route("/refresh-token").post(refreshAccessToken)
-router.route("/change-password").post(verifyJWT , changeCurrentPassword)
-router.route("/current-user").post(verifyJWT,getCurrentUser)
+router.route("/change-password").post(verifyJWT, changeCurrentPassword)
+router.route("/current-user").post(verifyJWT, getCurrentUser)
 router.route("/update-account").patch(verifyJWT, updateUserDetails)
+
 router.route("/update-avatar").patch(verifyJWT, upload.single("avatar"), updateUserAvatar)
 router.route("/update-cover-image").patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage)
+
+router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
+router.route("/history").get(verifyJWT, getWatchHistory)
 
 export default router
