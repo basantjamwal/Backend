@@ -141,9 +141,9 @@ const loggedOut = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user,
         {
-            $set:
+            $unset:
             {
-                refreshToken: undefined
+                refreshToken: 1
             }
         },
         {
@@ -372,11 +372,14 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     const { username } = req.params
 
+
     if (!username?.trim()) {
         throw new ApiErrors(400, "USERNAME IS MISSING")
     }
+    console.log("req.params.username:", username);
 
-    const channel = User.aggregate([
+
+    const channel = await User.aggregate([
         {
             $match: {
                 username: username?.toLowerCase()
@@ -401,10 +404,10 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         {
             $addFields: {
                 subscribersCount: {
-                    $size: "subscribers"
+                    $size: "$subscribers"
                 },
                 channelSubscribedToCount: {
-                    $size: "subscribedTo"
+                    $size: "$subscribedTo"
                 },
                 isSubscribed: {
                     $cond: {
@@ -435,10 +438,10 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(
+        .json(new ApiResponce(
             200,
             channel[0],
-            "USER CHANNEL FETCHED SUCCESSFULLY"
+            "USER CHANNEL FETCHED SUCCESSFULLY")
         )
 })
 
@@ -446,7 +449,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     const user = User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(user.req._id)
+                _id: new mongoose.Types.ObjectId(req.user._id)
             }
         },
         {
@@ -481,13 +484,15 @@ const getWatchHistory = asyncHandler(async (req, res) => {
         }
     ])
 
+    const watchHistory = user[0]?.watchHistory || [];
+
     return res
-    .status(200)
-    .json(new ApiResponce(
-        200,
-        user[0].watchHistory,
-        "WATCH HISTORY FETCHED SUCCESSFULLY"
-    ))
+        .status(200)
+        .json(new ApiResponce(
+            200,
+            watchHistory,
+            "WATCH HISTORY FETCHED SUCCESSFULLY"
+        ))
 })
 
 export {
